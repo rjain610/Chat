@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatio Admin Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+  body {
+    background: #f4f4f4;
+  }
+  #container{
+    width : 700px;
+    margin: 0 auto;
+  }
+  #adminWindow {
+    height: 300px;
+  }
+  #adminWrapp {
+  display: block;
+  }
+  #adminWrapp {
+    float: left;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background: #f4f4f4;
+    padding:  10px;
+  }
+  #userWrapper {
+    float: left;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background: #f4f4f4;
+    padding:  10px;
+    margin-left: 20px;
+    width: 150px;
+  }
+  #namesWrapper {
+    float: left;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background: #f4f4f4;
+    padding:  10px;
+    margin-left: 20px;
+
+  }
+  .mrg5 {
+    margin-top: 5%;
+  }
+  input {
+    height: 30px;
+  }
+  </style>
+</head>
+<body>
+  <div id = "container">
+    <div id = "mainWrapper">
+      <h2>Admin Broadcast </h2>
+      <div id= "adminWrapp">
+        <div class="panel panel-default" id = "adminWindow"></div>
+        <div class="panel-body" id = "messageForm">
+          <input class="form-control" size="35" id = "broadcastMessage" placeholder="BroadCast something..."/>
+          <input type="button" class="btn btn-primary pull-right mrg5" value="Send" id="btn-send">
+        </div>
+      </div>
+      <div  class="panel panel-default" id="userWrapper">
+        <div class="panel-body" id ="users"></div>
+      </div>
+    </div>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src = "/socket.io/socket.io.js"></script>
+  <script>
+  $(function(){
+    var socket = io.connect('http://localhost:3000');
+    var $messageForm = $("#messgeForm");
+    var $broadcastMessage = $('#broadcastMessage');
+    var $chat = $('#adminWindow ');
+    var $users = $('#users');
+    var $error = $('#error');
+
+    socket.on('allusers', function(data){
+       var html = '';
+       for(i=0;i < data.length; i++){
+         html+=data[i] + '<br>';
+       }
+       $users.html(html)
+    });
+    socket.emit('getuser', function(data){ console.log(data)});
+    socket.on('usernames', function(data){
+       var html = '';
+       for(i=0;i < data.length; i++){
+         html+=data[i] + '<br>';
+       }
+       $users.html(html)
+    });
+
+    $("#btn-send").on('click',function(e){
+      socket.emit('broadcastMessage',$broadcastMessage.val(),function(data){
+        $chat.append('<strong> '+$broadcastMessage.val()+'<br>');
+      });
+      $broadcastMessage.val('');
+    });
+
+
+  });
+
+  </script>
+</body>
+</html>

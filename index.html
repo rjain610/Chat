@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Chat Box </title>
+  <style>
+  body {
+    background: #f4f4f4;
+  }
+  #container{
+    width : 700px;
+    margin: 0 auto;
+  }
+  #chatWindow {
+    height: 300px;
+  }
+  #mainWrapper {
+  display: none;
+  }
+  #chatWrapper {
+    float: left;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background: #f4f4f4;
+    padding:  10px;
+  }
+  #userWrapper {
+    float: left;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background: #f4f4f4;
+    padding:  10px;
+    margin-left: 20px;
+    width: 150px;
+    max-height: 200px;
+  }
+  #namesWrapper {
+    float: left;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background: #f4f4f4;
+    padding:  10px;
+    margin-left: 20px;
+
+  }
+  input {
+    height: 30px;
+  }
+  </style>
+</head>
+<body>
+  <div id = "container">
+    <div id = "namesWrapper">
+      <h2> Chat Box </h2>
+      <p>Enter an UserName</p>
+      <div id = "error"></div>
+      <form id = "userNameForm">
+        <input size="35" id = "username"/>
+        <input type = "submit" value="submit" />
+      </form>
+    </div>
+    <div id = "mainWrapper">
+      <h2>Chat Box </h2>
+      <div id = "chatWrapper">
+        <div id = "chatWindow"></div>
+        <div id = "messageForm">
+          <input size="35" id = "message" placeholder="Type something"/>
+          <input type = "button" value="Send" id="btn-send">
+        </div>
+      </div>
+      <div id = "userWrapper">
+        <div id ="users"></div>
+      </div>
+    </div>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src = "/socket.io/socket.io.js"></script>
+  <script>
+  $(function(){
+    var socket = io.connect('http://localhost:3000');
+    var $messageForm = $("#messgeForm");
+    var $message = $('#message');
+    var $chat = $('#chatWindow');
+    var $userNameForm = $('#userNameForm');
+    var $users = $('#users');
+    var $userName = $('#username');
+    var $error = $('#error');
+
+    $userNameForm.submit(function(e){
+      e.preventDefault();
+      socket.emit('newuser',$userName.val(), function(data){
+        alert($userName.val())
+        if(data){
+          $('#namesWrapper').hide();
+          $("#mainWrapper").show();
+        }else {
+          $error.html('Username already taken');
+        }
+        $userName.val('');
+      });
+    });
+
+    socket.on('usernames', function(data){
+       var html = '';
+       console.log(data)
+       for(i=0;i < data.length; i++){
+         html+=data[i] + '<br>';
+       }
+       $users.html(html)
+    });
+    $("#btn-send").on('click',function(e){
+      socket.emit('send message',$message.val(),function(data){
+        $chat.append('<strong> '+data+'<br>');
+      });
+      $message.val('');
+    });
+
+    socket.on('new message',function(data){
+      $chat.append('<strong> '+data.un+'</strong> : ' + data.msg +'<br>');
+    });
+
+    socket.on('whisper',function(data){
+      $chat.append('<strong> '+data.un+'</strong> : ' + data.msg +'<br>');
+    });
+
+    socket.on('adminBroadcast',function(data){
+      var date = new Date();
+      $chat.append(data + ' ' + date+'<br>');
+    });
+  });
+
+  </script>
+</body>
+</html>
